@@ -138,6 +138,25 @@ byId("form-cierre").addEventListener("submit",async e=>{
     actualizarTareasGlobal();
   }
 
+  function renderFiltroCalendario(){
+    const sel=byId('filtro-calendario');
+    if(!sel) return;
+    const val=sel.value || 'todos';
+    sel.innerHTML='';
+    const opt=document.createElement('option');
+    opt.value='todos';
+    opt.textContent='Todos';
+    sel.appendChild(opt);
+    state.contactos.forEach(c=>{
+      const o=document.createElement('option');
+      o.value=c.id;
+      o.textContent=c.nombre;
+      sel.appendChild(o);
+    });
+    sel.value=val;
+    sel.onchange=renderCalendario;
+  }
+
   function actualizarTareasGlobal(){
     const sel=byId('filtro-tareas');
     const id=sel?sel.value:'todos';
@@ -170,6 +189,7 @@ byId("form-cierre").addEventListener("submit",async e=>{
   byId('mes-prev').onclick=()=>{state.fechaCalendario.setMonth(state.fechaCalendario.getMonth()-1);renderCalendario();};
   byId('mes-next').onclick=()=>{state.fechaCalendario.setMonth(state.fechaCalendario.getMonth()+1);renderCalendario();};
   function renderCalendario(){
+    renderFiltroCalendario();
     const grid=byId('calendario-grid');
     grid.innerHTML='';
     const f=new Date(state.fechaCalendario.getFullYear(),state.fechaCalendario.getMonth(),1);
@@ -183,7 +203,9 @@ byId("form-cierre").addEventListener("submit",async e=>{
       cel.className='dia';
       cel.innerHTML=`<span class='numero'>${d}</span>`;
       const fechaStr=`${year}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const lista=state.tareas.filter(t=>t.fecha===fechaStr);
+      const filtroSel=byId('filtro-calendario');
+      const filtro=filtroSel?filtroSel.value:'todos';
+      const lista=state.tareas.filter(t=>t.fecha===fechaStr && (filtro==='todos'||t.contactoId==filtro));
       lista.forEach(t=>{
         const badge=document.createElement('div');
         const cls=claseEstado(t);
@@ -202,7 +224,9 @@ byId("form-cierre").addEventListener("submit",async e=>{
     byId('titulo-dia').textContent='Tareas del '+formatoFecha(fecha);
     const ul=byId('lista-dia');
     ul.innerHTML='';
-    state.tareas.filter(t=>t.fecha===fecha).forEach(t=>{
+    const filtroSel=byId('filtro-calendario');
+    const filtro=filtroSel?filtroSel.value:'todos';
+    state.tareas.filter(t=>t.fecha===fecha && (filtro==='todos'||t.contactoId==filtro)).forEach(t=>{
       const li=document.createElement('li');
       const contacto=state.contactos.find(c=>c.id===t.contactoId)||{};
       li.innerHTML=`<span>${t.desc} - ${contacto.nombre||''} ${t.hora||''}</span>`;
@@ -210,7 +234,7 @@ byId("form-cierre").addEventListener("submit",async e=>{
       if(cls) li.classList.add('tarea-'+cls);
       if(t.estado!=='finalizada'){
         const btn=document.createElement('button');
-        btn.textContent='Cerrar';
+        btn.textContent='Finalizar';
         btn.className='accion';
         btn.dataset.fin=t.id;
         li.appendChild(btn);
