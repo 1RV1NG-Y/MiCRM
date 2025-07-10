@@ -141,4 +141,11 @@
 #lista-dia{list-style:none;padding:0;margin:0;}
 #lista-dia li{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #eee;}
 #lista-dia li:last-child{border-bottom:none;}
+/* Colores de estado para tareas */
+.tarea-verde{background:#d4edda;color:#155724;}
+.tarea-amarilla{background:#fff3cd;color:#856404;}
+.tarea-roja{background:#f8d7da;color:#721c24;}
+.tarea-badge.verde{background:#28a745;}
+.tarea-badge.amarilla{background:#ffc107;color:#000;}
+.tarea-badge.roja{background:#dc3545;}
 
