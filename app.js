@@ -57,7 +57,8 @@
   byId('volver').onclick=()=>seleccionarVista('contactos');
   byId('agregar-tarea').onclick=()=>{byId('form-tarea').reset();byId('t-id').value='';abrirModal('modal-tarea');};
   byId('form-tarea').addEventListener('submit',e=>{e.preventDefault();const id=byId('t-id').value;const obj={desc:byId('t-desc').value,lugar:byId('t-lugar').value,fecha:byId('t-fecha').value,hora:byId('t-hora').value,notas:byId('t-notas').value,contactoId:state.contactoActual,estado:'pendiente'};if(id){const idx=state.tareas.findIndex(t=>t.id==id);state.tareas[idx]={...state.tareas[idx],...obj};}else{obj.id=Date.now();state.tareas.push(obj);}guardar();cerrarModal('modal-tarea');renderDetalle();});byId('guardar-nota').addEventListener('click',()=>{const nota=byId('nota-seguimiento').value;if(!nota)return;const contacto=state.contactos.find(c=>c.id===state.contactoActual);if(!contacto)return;if(!contacto.seguimiento)contacto.seguimiento=[];contacto.seguimiento.push({fecha:new Date().toISOString(),nota:nota});guardar();renderDetalle();byId('nota-seguimiento').value='';});function renderDetalle(){const c=state.contactos.find(c=>c.id===state.contactoActual);if(!c)return;byId('nombre-detalle').textContent='Seguimiento: '+c.nombre;byId('info-contacto').innerHTML=`<p><strong>Tipo:</strong> ${c.tipo}</p><p><strong>Empresa:</strong> ${c.comercial||'—'}</p><p><strong>Razón Social:</strong> ${c.razon||'—'}</p><p><strong>Email:</strong> ${c.email||'—'}</p><p><strong>Teléfono:</strong> ${c.telefono||'—'}</p><p><strong>Ubicación:</strong> ${c.ubicacion||'—'}</p><p><strong>Quién recomienda:</strong> ${c.refiere||'—'}</p><p><strong>Vendedor/Agente:</strong> ${c.agente||'—'}</p><p><strong>Tipo de Empresa:</strong> ${c.empresa||'—'}</p>`;/* tareas pendientes */const tbodyPendientes=byId('tabla-tareas-pendientes');tbodyPendientes.innerHTML='';state.tareas.filter(t=>t.contactoId===c.id&&t.estado==='pendiente').forEach(t=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${t.desc}</td><td>${t.lugar||''}</td><td>${formatoFecha(t.fecha)} ${t.hora}</td><td>${t.notas||''}</td><td><button class='accion' data-fin='${t.id}'>✓</button></td>`;tbodyPendientes.appendChild(tr);});/* historial */const tbH=byId('tabla-historial');tbH.innerHTML='';const historialOrdenado=(c.seguimiento||[]).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));historialOrdenado.forEach(fu=>{const tr=document.createElement('tr');tr.innerHTML=`<td>Nota de seguimiento</td><td>${new Date(fu.fecha).toLocaleString()}</td><td>N/A</td><td>${fu.nota||''}</td>`;tbH.appendChild(tr);});renderHistorialTareas();}
-  let cierreId=null;
+let cierreId=null;
+let fechaDiaActual=null;
 byId("tabla-tareas-pendientes").addEventListener("click",e=>{
   if(e.target.dataset.fin){
     cierreId=parseInt(e.target.dataset.fin);
@@ -87,6 +88,8 @@ byId("form-cierre").addEventListener("submit",async e=>{
   guardar();
   cerrarModal("modal-cierre");
   renderDetalle();
+  renderCalendario();
+  if(fechaDiaActual) mostrarDia(fechaDiaActual);
 });
 function renderHistorialTareas(){
     const tbody=byId('tabla-historial-tareas');
@@ -108,7 +111,36 @@ function renderHistorialTareas(){
   byId('mes-next').onclick=()=>{state.fechaCalendario.setMonth(state.fechaCalendario.getMonth()+1);renderCalendario();};
   function renderCalendario(){const grid=byId('calendario-grid');grid.innerHTML='';const f=new Date(state.fechaCalendario.getFullYear(),state.fechaCalendario.getMonth(),1);const year=f.getFullYear(),mes=f.getMonth();byId('titulo-mes').textContent=f.toLocaleString('es-ES',{month:'long',year:'numeric'});const primerDia=f.getDay();const diasMes=new Date(year,mes+1,0).getDate();for(let i=0;i<primerDia;i++){grid.appendChild(document.createElement('div'));}
     for(let d=1;d<=diasMes;d++){const cel=document.createElement('div');cel.className='dia';cel.innerHTML=`<span class='numero'>${d}</span>`;const fechaStr=`${year}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const lista=state.tareas.filter(t=>t.fecha===fechaStr);lista.forEach(t=>{const badge=document.createElement('div');badge.className='tarea-badge';const contacto=state.contactos.find(c=>c.id===t.contactoId);badge.textContent=t.desc+(contacto?` (${contacto.nombre})`:"");cel.appendChild(badge);});cel.onclick=()=>mostrarDia(fechaStr);grid.appendChild(cel);} }
-  function mostrarDia(fecha){byId('titulo-dia').textContent='Tareas del '+formatoFecha(fecha);const ul=byId('lista-dia');ul.innerHTML='';state.tareas.filter(t=>t.fecha===fecha).forEach(t=>{const li=document.createElement('li');const contacto=state.contactos.find(c=>c.id===t.contactoId)||{};li.textContent=`${t.desc} - ${contacto.nombre||''} ${t.hora}`;ul.appendChild(li);});abrirModal('modal-dia');}
+  function mostrarDia(fecha){
+    fechaDiaActual=fecha;
+    byId('titulo-dia').textContent='Tareas del '+formatoFecha(fecha);
+    const ul=byId('lista-dia');
+    ul.innerHTML='';
+    state.tareas.filter(t=>t.fecha===fecha).forEach(t=>{
+      const li=document.createElement('li');
+      const contacto=state.contactos.find(c=>c.id===t.contactoId)||{};
+      li.innerHTML=`<span>${t.desc} - ${contacto.nombre||''} ${t.hora||''}</span>`;
+      if(t.estado!=='finalizada'){
+        const btn=document.createElement('button');
+        btn.textContent='Cerrar';
+        btn.className='accion';
+        btn.dataset.fin=t.id;
+        li.appendChild(btn);
+      }
+      ul.appendChild(li);
+    });
+    abrirModal('modal-dia');
+  }
+
+  byId('lista-dia').addEventListener('click',e=>{
+    if(e.target.dataset.fin){
+      cierreId=parseInt(e.target.dataset.fin);
+      byId('form-cierre').reset();
+      byId('lista-archivos').innerHTML='';
+      cerrarModal('modal-dia');
+      abrirModal('modal-cierre');
+    }
+  });
   /* ========= MODALES GENÉRICOS ========= */
   document.querySelectorAll('[data-cerrar]').forEach(el=>el.onclick=()=>cerrarModal(el.dataset.cerrar));
   document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)cerrarModal(m.id);}));
