@@ -249,6 +249,16 @@
     }
   });
 
+  $('lista-dia').addEventListener('click', e => {
+    if (e.target.dataset.fin) {
+      const id = parseInt(e.target.dataset.fin);
+      $('form-fin-tarea').reset();
+      $('fin-id').value = id;
+      closeModal('modal-dia');
+      openModal('modal-fin-tarea');
+    }
+  });
+
   $('form-fin-tarea').addEventListener('submit', async e => {
     e.preventDefault();
     const id = parseInt($('fin-id').value);
@@ -316,7 +326,14 @@
     state.tareas.filter(t => t.fecha === fecha).forEach(t => {
       const li = document.createElement('li');
       const contacto = state.contactos.find(c => c.id === t.contactoId) || {};
-      li.textContent = `${t.desc} - ${contacto.nombre || ''} ${t.hora}`;
+      li.innerHTML = `<span>${t.desc} - ${contacto.nombre || ''} ${t.hora}</span>`;
+      if (t.estado === 'pendiente') {
+        const btn = document.createElement('button');
+        btn.className = 'accion';
+        btn.dataset.fin = t.id;
+        btn.textContent = 'Cerrar';
+        li.appendChild(btn);
+      }
       ul.appendChild(li);
     });
     openModal('modal-dia');
