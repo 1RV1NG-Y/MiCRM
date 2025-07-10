@@ -181,6 +181,7 @@
     </div>
     <form id="form-tarea">
       <input type="hidden" id="t-id">
+      <div class="campo"><label>Contacto</label><select id="t-contacto"></select></div>
       <div class="campo"><label>Descripción de la tarea</label><input id="t-desc" required></div>
       <div class="campo"><label>Lugar/Ubicación</label><input id="t-lugar"></div>
       <div class="campo" style="display:flex;gap:8px"><div style="flex:1"><label>Fecha</label><input id="t-fecha" type="date" required></div><div style="flex:1"><label>Hora</label><input id="t-hora" type="time" required></div></div>
@@ -208,6 +209,7 @@
     <span class="cerrar" data-cerrar="modal-dia">&times;</span>
     <div class="modal-header">
       <h3 id="titulo-dia"></h3>
+      <button id="dia-nueva-tarea" class="add">Añadir tarea</button>
     </div>
     <ul id="lista-dia"></ul>
   </div></div>
