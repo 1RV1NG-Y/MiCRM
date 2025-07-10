@@ -30,6 +30,7 @@
       <ul>
         <li><a href="#" class="link-nav activo" data-vista="dashboard">Dashboard</a></li>
         <li><a href="#" class="link-nav" data-vista="contactos">Contactos</a></li>
+        <li><a href="#" class="link-nav" data-vista="tareas">Tareas</a></li>
         <li><a href="#" class="link-nav" data-vista="calendario">Calendario</a></li>
       </ul>
     </nav>
@@ -92,8 +93,37 @@
  <div class="tabla-contenedor">
  <table><thead><tr><th>Tarea</th><th>Lugar</th><th>Fecha/Hora</th><th>Duración</th><th>Comentario</th><th>Archivos</th></tr></thead><tbody id="tabla-historial-tareas"></tbody></table>
  </div>
- </div>
+</div>
 
+      </section>
+      <!-- TAREAS -->
+      <section id="tareas" class="seccion">
+        <div class="encabezado">
+          <h2>Todas las tareas</h2>
+          <select id="filtro-tareas"></select>
+        </div>
+        <div class="tarjeta" style="margin-bottom:24px">
+          <h3>Tareas pendientes</h3>
+          <div class="tabla-contenedor">
+            <table>
+              <thead>
+                <tr><th>Tarea</th><th>Contacto</th><th>Lugar</th><th>Fecha/Hora</th><th>Observaciones</th></tr>
+              </thead>
+              <tbody id="tabla-tareas-global"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="tarjeta">
+          <h3>Historial de tareas</h3>
+          <div class="tabla-contenedor">
+            <table>
+              <thead>
+                <tr><th>Tarea</th><th>Contacto</th><th>Lugar</th><th>Fecha/Hora</th><th>Duración</th><th>Comentario</th><th>Archivos</th></tr>
+              </thead>
+              <tbody id="tabla-historial-global"></tbody>
+            </table>
+          </div>
+        </div>
       </section>
       <!-- CALENDARIO -->
       <section id="calendario" class="seccion">
