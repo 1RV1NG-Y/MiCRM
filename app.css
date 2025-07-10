@@ -64,7 +64,16 @@
       border-radius: 4px;
     }
     .modal.abierto{display:flex}
-    .modal-contenido{background:#fff;padding:24px;border-radius:var(--radio);width:90%;max-width:520px;animation:slide .25s ease}
+    .modal-contenido{
+      background:#fff;
+      padding:24px;
+      border-radius:var(--radio);
+      width:90%;
+      max-width:520px;
+      max-height:90vh;
+      overflow-y:auto;
+      animation:slide .25s ease
+    }
     @keyframes slide{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
     .modal-contenido .modal-header { /* Added modal header styling */
       display: flex;
