@@ -127,7 +127,16 @@
       </section>
       <!-- CALENDARIO -->
       <section id="calendario" class="seccion">
-        <div class="encabezado"><h2>Calendario</h2><select id="filtro-calendario"></select></div>
+        <div class="encabezado"><h2>Calendario</h2>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="vista-calendario">
+              <option value="mes">Mensual</option>
+              <option value="semana">Semanal</option>
+              <option value="dia">Diario</option>
+            </select>
+            <select id="filtro-calendario"></select>
+          </div>
+        </div>
         <div class="tarjeta" style="padding:18px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
             <button id="mes-prev" class="volver" style="padding:5px 12px">&lt;</button>
