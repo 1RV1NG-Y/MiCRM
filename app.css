@@ -96,6 +96,15 @@
     .modal .cerrar{position:absolute;top:10px;right:14px;font-size:26px;font-weight:700;color:#999;cursor:pointer}
     textarea{width:100%;min-height:70px;padding:9px;border:1px solid #ccc;border-radius:4px}
     /* Additional styles for Contact Detail page */
+    #info-contacto {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    #info-contacto p {
+      flex: 1 1 45%;
+      margin: 4px 0;
+    }
     #info-contacto p strong {
       display: inline-block;
       width: 100px; /* Adjusted width for alignment */
