@@ -114,7 +114,7 @@
           <div class="tabla-contenedor">
             <table>
               <thead>
-                <tr><th>Tarea</th><th>Lugar</th><th>Fecha/Hora</th><th>Duración</th><th>Comentario</th></tr>
+                <tr><th>Tarea</th><th>Lugar</th><th>Fecha/Hora</th><th>Duración</th><th>Comentario</th><th>Archivos</th></tr>
               </thead>
               <tbody id="tabla-historial-tareas"></tbody>
             </table>
@@ -191,6 +191,21 @@
       <span class="cerrar" data-cerrar="modal-dia">&times;</span>
       <div class="modal-header"><h3 id="titulo-dia"></h3></div>
       <ul id="lista-dia"></ul>
+    </div>
+  </div>
+
+  <!-- MODAL FIN TAREA -->
+  <div id="modal-fin-tarea" class="modal">
+    <div class="modal-contenido">
+      <span class="cerrar" data-cerrar="modal-fin-tarea">&times;</span>
+      <div class="modal-header"><h3>Cerrar tarea</h3></div>
+      <form id="form-fin-tarea">
+        <input type="hidden" id="fin-id">
+        <div class="campo"><label>Duración</label><input id="fin-duracion" placeholder="Ej. 5Min"></div>
+        <div class="campo"><label>Comentario</label><textarea id="fin-comentario"></textarea></div>
+        <div class="campo"><label>Adjuntar archivos</label><input id="fin-archivos" type="file" multiple></div>
+        <button class="btn" type="submit">Guardar</button>
+      </form>
     </div>
   </div>
 

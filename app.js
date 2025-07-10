@@ -234,7 +234,8 @@
     tbHistTareas.innerHTML = '';
     state.tareas.filter(t => t.contactoId === c.id && t.estado === 'finalizada').forEach(t => {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${t.desc}</td><td>${t.lugar || ''}</td><td>${formatDate(t.fecha)} ${t.hora}</td><td>${t.duracion || ''}</td><td>${t.comentario || ''}</td>`;
+      const archivos = (t.archivos || []).map(a => `<a href="${a.data}" download="${a.nombre}" class='accion' style='background:var(--azul);margin-right:4px'>Descargar</a>`).join('');
+      tr.innerHTML = `<td>${t.desc}</td><td>${t.lugar || ''}</td><td>${formatDate(t.fecha)} ${t.hora}</td><td>${t.duracion || ''}</td><td>${t.comentario || ''}</td><td>${archivos}</td>`;
       tbHistTareas.appendChild(tr);
     });
   }
@@ -242,13 +243,30 @@
   $('tabla-tareas-pendientes').addEventListener('click', e => {
     if (e.target.dataset.fin) {
       const id = parseInt(e.target.dataset.fin);
-      const t = state.tareas.find(x => x.id === id);
-      t.estado = 'finalizada';
-      t.duracion = prompt('Duración (ej. 5Min):', '');
-      t.comentario = prompt('Comentario:', '');
-      save();
-      renderDetalle();
+      $('form-fin-tarea').reset();
+      $('fin-id').value = id;
+      openModal('modal-fin-tarea');
     }
+  });
+
+  $('form-fin-tarea').addEventListener('submit', async e => {
+    e.preventDefault();
+    const id = parseInt($('fin-id').value);
+    const t = state.tareas.find(x => x.id === id);
+    if (!t) return;
+    t.estado = 'finalizada';
+    t.duracion = $('fin-duracion').value;
+    t.comentario = $('fin-comentario').value;
+    const files = Array.from($('fin-archivos').files || []);
+    if (files.length) {
+      const readFile = f => new Promise(res => { const r = new FileReader(); r.onload = ev => res({nombre:f.name, data:ev.target.result}); r.readAsDataURL(f); });
+      t.archivos = await Promise.all(files.map(readFile));
+    } else {
+      t.archivos = [];
+    }
+    save();
+    closeModal('modal-fin-tarea');
+    renderDetalle();
   });
 
   // ===== Calendario =====

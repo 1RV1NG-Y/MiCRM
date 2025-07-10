@@ -42,7 +42,7 @@
     th,td{padding:13px;border-bottom:1px solid #dee2e6;text-align:left;font-size:14px}
     th{background:var(--gris-claro);font-weight:600}
     tbody tr:hover{background:#e9efff;cursor:pointer}
-    .accion{background:#dc3545;color:#fff;border:none;padding:5px 10px;border-radius:4px;cursor:pointer}
+    .accion{background:#dc3545;color:#fff;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;text-decoration:none;display:inline-block}
     /* calendario */
     #calendario-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
     .dia-enc,.dia{padding:8px;text-align:center}
