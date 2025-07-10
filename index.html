@@ -90,7 +90,7 @@
  <div class="seguimiento-section" style="margin-top: 24px;">
  <h3>Historial de tareas</h3>
  <div class="tabla-contenedor">
- <table><thead><tr><th>Tarea</th><th>Lugar</th><th>Fecha/Hora</th><th>Duración</th><th>Comentario</th></tr></thead><tbody id="tabla-historial-tareas"></tbody></table>
+ <table><thead><tr><th>Tarea</th><th>Lugar</th><th>Fecha/Hora</th><th>Duración</th><th>Comentario</th><th>Archivos</th></tr></thead><tbody id="tabla-historial-tareas"></tbody></table>
  </div>
  </div>
 
@@ -144,7 +144,22 @@
       <div class="campo"><label>Lugar/Ubicación</label><input id="t-lugar"></div>
       <div class="campo" style="display:flex;gap:8px"><div style="flex:1"><label>Fecha</label><input id="t-fecha" type="date" required></div><div style="flex:1"><label>Hora</label><input id="t-hora" type="time" required></div></div>
       <div class="campo"><label>Observaciones</label><textarea id="t-notas"></textarea></div>
-      <button class="btn" type="submit">Guardar tarea</button>
+    <button class="btn" type="submit">Guardar tarea</button>
+    </form>
+  </div></div>
+  <!-- MODAL CIERRE TAREA -->
+  <div id="modal-cierre" class="modal"><div class="modal-contenido">
+    <span class="cerrar" data-cerrar="modal-cierre">&times;</span>
+    <div class="modal-header">
+      <h3>Cerrar tarea</h3>
+    </div>
+    <form id="form-cierre">
+      <input type="hidden" id="f-id">
+      <div class="campo"><label>Duración</label><input id="f-duracion" required></div>
+      <div class="campo"><label>Comentario</label><textarea id="f-comentario"></textarea></div>
+      <div class="campo"><label>Archivos</label><input id="f-archivos" type="file" multiple></div>
+      <ul id="lista-archivos"></ul>
+      <button class="btn" type="submit">Guardar</button>
     </form>
   </div></div>
   <!-- MODAL DIA CALENDARIO -->
