@@ -150,6 +150,8 @@ byId("form-cierre").addEventListener("submit",async e=>{
     lista.filter(t=>t.estado==='pendiente').forEach(t=>{
       const contacto=state.contactos.find(c=>c.id===t.contactoId)||{};
       const tr=document.createElement('tr');
+      const cls=claseEstado(t);
+      if(cls) tr.classList.add('tarea-'+cls);
       tr.innerHTML=`<td>${t.desc}</td><td>${contacto.nombre||''}</td><td>${t.lugar||''}</td><td>${formatoFecha(t.fecha)} ${t.hora||''}</td><td>${t.notas||''}</td>`;
       pendientes.appendChild(tr);
     });
