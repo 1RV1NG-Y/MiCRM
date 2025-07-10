@@ -7,7 +7,8 @@
     tareas:LS('crm_tareas')||[], // {id,contactoId,desc,lugar,fecha,hora,notas,estado:'pendiente'|'finalizada',duracion,comentario}
     vista:'dashboard',
     contactoActual:null,
-    fechaCalendario:new Date()
+    fechaCalendario:new Date(),
+    vistaCalendario:'mes'
   };
   /* ========= UTIL ========= */
   const byId=id=>document.getElementById(id);
@@ -186,37 +187,114 @@ byId("form-cierre").addEventListener("submit",async e=>{
   /* ========= CALENDARIO ========= */
   const nombresDias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
   byId('calendario-encabezado').innerHTML=nombresDias.map(d=>`<div class='dia-enc'>${d}</div>`).join('');
-  byId('mes-prev').onclick=()=>{state.fechaCalendario.setMonth(state.fechaCalendario.getMonth()-1);renderCalendario();};
-  byId('mes-next').onclick=()=>{state.fechaCalendario.setMonth(state.fechaCalendario.getMonth()+1);renderCalendario();};
+
+  const selVista=byId('vista-calendario');
+  if(selVista) selVista.onchange=()=>{state.vistaCalendario=selVista.value;renderCalendario();};
+
+  byId('mes-prev').onclick=()=>{
+    if(state.vistaCalendario==='mes') state.fechaCalendario.setMonth(state.fechaCalendario.getMonth()-1);
+    else if(state.vistaCalendario==='semana') state.fechaCalendario.setDate(state.fechaCalendario.getDate()-7);
+    else state.fechaCalendario.setDate(state.fechaCalendario.getDate()-1);
+    renderCalendario();
+  };
+  byId('mes-next').onclick=()=>{
+    if(state.vistaCalendario==='mes') state.fechaCalendario.setMonth(state.fechaCalendario.getMonth()+1);
+    else if(state.vistaCalendario==='semana') state.fechaCalendario.setDate(state.fechaCalendario.getDate()+7);
+    else state.fechaCalendario.setDate(state.fechaCalendario.getDate()+1);
+    renderCalendario();
+  };
   function renderCalendario(){
     renderFiltroCalendario();
     const grid=byId('calendario-grid');
+    const encabezado=byId('calendario-encabezado');
+    const contDia=byId('calendario-dia');
     grid.innerHTML='';
-    const f=new Date(state.fechaCalendario.getFullYear(),state.fechaCalendario.getMonth(),1);
-    const year=f.getFullYear(),mes=f.getMonth();
-    byId('titulo-mes').textContent=f.toLocaleString('es-ES',{month:'long',year:'numeric'});
-    const primerDia=f.getDay();
-    const diasMes=new Date(year,mes+1,0).getDate();
-    for(let i=0;i<primerDia;i++) grid.appendChild(document.createElement('div'));
-    for(let d=1;d<=diasMes;d++){
-      const cel=document.createElement('div');
-      cel.className='dia';
-      cel.innerHTML=`<span class='numero'>${d}</span>`;
-      const fechaStr=`${year}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const filtroSel=byId('filtro-calendario');
-      const filtro=filtroSel?filtroSel.value:'todos';
-      const lista=state.tareas.filter(t=>t.fecha===fechaStr && (filtro==='todos'||t.contactoId==filtro));
-      lista.forEach(t=>{
-        const badge=document.createElement('div');
-        const cls=claseEstado(t);
-        badge.classList.add('tarea-badge');
-        if(cls) badge.classList.add(cls);
-        const contacto=state.contactos.find(c=>c.id===t.contactoId);
-        badge.textContent=t.desc+(contacto?` (${contacto.nombre})`:'');
-        cel.appendChild(badge);
-      });
-      cel.onclick=()=>mostrarDia(fechaStr);
-      grid.appendChild(cel);
+    contDia.innerHTML='';
+    const vista=byId('vista-calendario')?byId('vista-calendario').value:state.vistaCalendario;
+    state.vistaCalendario=vista;
+    encabezado.style.display=vista==='dia'?'none':'grid';
+    grid.style.display=vista==='dia'?'none':'grid';
+    contDia.style.display=vista==='dia'?'block':'none';
+
+    const filtroSel=byId('filtro-calendario');
+    const filtro=filtroSel?filtroSel.value:'todos';
+
+    if(vista==='mes'){
+      const f=new Date(state.fechaCalendario.getFullYear(),state.fechaCalendario.getMonth(),1);
+      const year=f.getFullYear(),mes=f.getMonth();
+      byId('titulo-mes').textContent=f.toLocaleString('es-ES',{month:'long',year:'numeric'});
+      const primerDia=f.getDay();
+      const diasMes=new Date(year,mes+1,0).getDate();
+      for(let i=0;i<primerDia;i++) grid.appendChild(document.createElement('div'));
+      for(let d=1;d<=diasMes;d++){
+        const cel=document.createElement('div');
+        cel.className='dia';
+        cel.innerHTML=`<span class='numero'>${d}</span>`;
+        const fechaStr=`${year}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const lista=state.tareas.filter(t=>t.fecha===fechaStr && (filtro==='todos'||t.contactoId==filtro));
+        lista.forEach(t=>{
+          const badge=document.createElement('div');
+          const cls=claseEstado(t);
+          badge.classList.add('tarea-badge');
+          if(cls) badge.classList.add(cls);
+          const contacto=state.contactos.find(c=>c.id===t.contactoId);
+          badge.textContent=t.desc+(contacto?` (${contacto.nombre})`:'');
+          cel.appendChild(badge);
+        });
+        cel.onclick=()=>mostrarDia(fechaStr);
+        grid.appendChild(cel);
+      }
+    } else if(vista==='semana'){
+      const start=new Date(state.fechaCalendario);
+      start.setDate(start.getDate()-start.getDay());
+      const end=new Date(start);
+      end.setDate(start.getDate()+6);
+      byId('titulo-mes').textContent=`Semana del ${formatoFecha(start.toISOString())}`;
+      for(let i=0;i<7;i++){
+        const d=new Date(start);
+        d.setDate(start.getDate()+i);
+        const cel=document.createElement('div');
+        cel.className='dia';
+        cel.innerHTML=`<span class='numero'>${d.getDate()}</span>`;
+        const fechaStr=d.toISOString().slice(0,10);
+        const lista=state.tareas.filter(t=>t.fecha===fechaStr && (filtro==='todos'||t.contactoId==filtro));
+        lista.forEach(t=>{
+          const badge=document.createElement('div');
+          const cls=claseEstado(t);
+          badge.classList.add('tarea-badge');
+          if(cls) badge.classList.add(cls);
+          const contacto=state.contactos.find(c=>c.id===t.contactoId);
+          badge.textContent=t.desc+(contacto?` (${contacto.nombre})`:'');
+          cel.appendChild(badge);
+        });
+        cel.onclick=()=>mostrarDia(fechaStr);
+        grid.appendChild(cel);
+      }
+    } else {
+      const f=new Date(state.fechaCalendario);
+      byId('titulo-mes').textContent=formatoFecha(f.toISOString());
+      for(let h=0;h<24;h++){
+        const linea=document.createElement('div');
+        linea.className='hora-linea';
+        const label=document.createElement('div');
+        label.className='hora-label';
+        label.textContent=(`${h}`.padStart(2,'0'))+':00';
+        const eventos=document.createElement('div');
+        eventos.className='hora-eventos';
+        const horaStr=`${String(h).padStart(2,'0')}`;
+        const fechaStr=f.toISOString().slice(0,10);
+        state.tareas.filter(t=>t.fecha===fechaStr && t.hora && t.hora.startsWith(horaStr) && (filtro==='todos'||t.contactoId==filtro)).forEach(t=>{
+          const div=document.createElement('div');
+          const cls=claseEstado(t);
+          if(cls) div.classList.add('tarea-'+cls);
+          const contacto=state.contactos.find(c=>c.id===t.contactoId)||{};
+          div.textContent=`${t.hora} - ${t.desc} ${(contacto.nombre? '('+contacto.nombre+')':'')}`;
+          eventos.appendChild(div);
+        });
+        linea.appendChild(label);
+        linea.appendChild(eventos);
+        contDia.appendChild(linea);
+      }
     }
   }
   function mostrarDia(fecha){
