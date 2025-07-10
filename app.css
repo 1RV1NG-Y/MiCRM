@@ -45,12 +45,17 @@
     .accion{background:#dc3545;color:#fff;border:none;padding:5px 10px;border-radius:4px;cursor:pointer}
     /* calendario */
     #calendario-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+    #calendario-grid.semana{grid-template-rows:1fr;}
+    #calendario-grid.dia{display:block;}
+    .hora{position:relative;border:1px solid #eee;height:40px;padding-left:50px;background:var(--blanco);}
+    .hora-label{position:absolute;left:4px;top:4px;font-size:12px;color:var(--gris);}
     .dia-enc,.dia{padding:8px;text-align:center}
     .dia-enc{font-weight:700;color:var(--gris)}
     .dia{background:var(--blanco);min-height:90px;position:relative;border:1px solid #eee}
     .numero{position:absolute;top:4px;right:6px;font-size:12px}
     .tarea-badge{background:var(--azul);color:#fff;font-size:11px;padding:1px 4px;border-radius:3px;display:inline-block;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .dia:hover{background:#e9efff;cursor:pointer}
+    .hora:hover{background:#e9efff;cursor:pointer}
     /* modal */
     .modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.6);justify-content:center;align-items:center}
     /* Tarea completada form */

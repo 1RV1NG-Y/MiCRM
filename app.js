@@ -7,7 +7,8 @@
     tareas:LS('crm_tareas')||[], // {id,contactoId,desc,lugar,fecha,hora,notas,estado:'pendiente'|'finalizada',duracion,comentario}
     vista:'dashboard',
     contactoActual:null,
-    fechaCalendario:new Date()
+    fechaCalendario:new Date(),
+    vistaCalendario:'mes'
   };
   /* ========= UTIL ========= */
   const byId=id=>document.getElementById(id);
@@ -157,6 +158,12 @@ byId("form-cierre").addEventListener("submit",async e=>{
     sel.onchange=renderCalendario;
   }
 
+  const vistaSel=byId('vista-calendario');
+  if(vistaSel){
+    vistaSel.value=state.vistaCalendario;
+    vistaSel.onchange=e=>{state.vistaCalendario=e.target.value;renderCalendario();};
+  }
+
   function actualizarTareasGlobal(){
     const sel=byId('filtro-tareas');
     const id=sel?sel.value:'todos';
@@ -185,13 +192,30 @@ byId("form-cierre").addEventListener("submit",async e=>{
 
   /* ========= CALENDARIO ========= */
   const nombresDias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-  byId('calendario-encabezado').innerHTML=nombresDias.map(d=>`<div class='dia-enc'>${d}</div>`).join('');
-  byId('mes-prev').onclick=()=>{state.fechaCalendario.setMonth(state.fechaCalendario.getMonth()-1);renderCalendario();};
-  byId('mes-next').onclick=()=>{state.fechaCalendario.setMonth(state.fechaCalendario.getMonth()+1);renderCalendario();};
+  function moverPeriodo(dir){
+    if(state.vistaCalendario==='mes') state.fechaCalendario.setMonth(state.fechaCalendario.getMonth()+dir);
+    else if(state.vistaCalendario==='semana') state.fechaCalendario.setDate(state.fechaCalendario.getDate()+dir*7);
+    else state.fechaCalendario.setDate(state.fechaCalendario.getDate()+dir);
+    renderCalendario();
+  }
+  byId('mes-prev').onclick=()=>moverPeriodo(-1);
+  byId('mes-next').onclick=()=>moverPeriodo(1);
   function renderCalendario(){
     renderFiltroCalendario();
     const grid=byId('calendario-grid');
+    const encabezado=byId('calendario-encabezado');
     grid.innerHTML='';
+    encabezado.innerHTML='';
+    grid.className='';
+    const vista=state.vistaCalendario;
+    if(vista==='mes') renderCalendarioMes(grid,encabezado);
+    else if(vista==='semana') renderCalendarioSemana(grid,encabezado);
+    else renderCalendarioDia(grid,encabezado);
+  }
+
+  function renderCalendarioMes(grid,enc){
+    enc.innerHTML=nombresDias.map(d=>`<div class='dia-enc'>${d}</div>`).join('');
+    grid.classList.remove('dia');
     const f=new Date(state.fechaCalendario.getFullYear(),state.fechaCalendario.getMonth(),1);
     const year=f.getFullYear(),mes=f.getMonth();
     byId('titulo-mes').textContent=f.toLocaleString('es-ES',{month:'long',year:'numeric'});
@@ -203,9 +227,41 @@ byId("form-cierre").addEventListener("submit",async e=>{
       cel.className='dia';
       cel.innerHTML=`<span class='numero'>${d}</span>`;
       const fechaStr=`${year}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const filtroSel=byId('filtro-calendario');
-      const filtro=filtroSel?filtroSel.value:'todos';
-      const lista=state.tareas.filter(t=>t.fecha===fechaStr && (filtro==='todos'||t.contactoId==filtro));
+      agregarTareasACelda(cel,fechaStr);
+      cel.onclick=()=>{mostrarDia(fechaStr);};
+      grid.appendChild(cel);
+    }
+  }
+
+  function renderCalendarioSemana(grid,enc){
+    enc.innerHTML=nombresDias.map(d=>`<div class='dia-enc'>${d}</div>`).join('');
+    grid.classList.add('semana');
+    const start=new Date(state.fechaCalendario);
+    start.setDate(start.getDate()-start.getDay());
+    const end=new Date(start);end.setDate(start.getDate()+6);
+    byId('titulo-mes').textContent=formatoFecha(start)+' - '+formatoFecha(end);
+    for(let i=0;i<7;i++){
+      const d=new Date(start);d.setDate(start.getDate()+i);
+      const cel=document.createElement('div');
+      cel.className='dia';
+      cel.innerHTML=`<span class='numero'>${d.getDate()}</span>`;
+      const fechaStr=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      agregarTareasACelda(cel,fechaStr);
+      cel.onclick=()=>{mostrarDia(fechaStr);};
+      grid.appendChild(cel);
+    }
+  }
+
+  function renderCalendarioDia(grid,enc){
+    grid.classList.add('dia');
+    const f=new Date(state.fechaCalendario);
+    byId('titulo-mes').textContent=f.toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    const fechaStr=`${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,'0')}-${String(f.getDate()).padStart(2,'0')}`;
+    for(let h=0;h<24;h++){
+      const hora=document.createElement('div');
+      hora.className='hora';
+      hora.innerHTML=`<span class='hora-label'>${String(h).padStart(2,'0')}:00</span>`;
+      const lista=state.tareas.filter(t=>t.fecha===fechaStr && parseInt((t.hora||'00').slice(0,2))===h && (byId('filtro-calendario').value==='todos'||t.contactoId==byId('filtro-calendario').value));
       lista.forEach(t=>{
         const badge=document.createElement('div');
         const cls=claseEstado(t);
@@ -213,11 +269,25 @@ byId("form-cierre").addEventListener("submit",async e=>{
         if(cls) badge.classList.add(cls);
         const contacto=state.contactos.find(c=>c.id===t.contactoId);
         badge.textContent=t.desc+(contacto?` (${contacto.nombre})`:'');
-        cel.appendChild(badge);
+        hora.appendChild(badge);
       });
-      cel.onclick=()=>mostrarDia(fechaStr);
-      grid.appendChild(cel);
+      grid.appendChild(hora);
     }
+  }
+
+  function agregarTareasACelda(cel,fechaStr){
+    const filtroSel=byId('filtro-calendario');
+    const filtro=filtroSel?filtroSel.value:'todos';
+    const lista=state.tareas.filter(t=>t.fecha===fechaStr && (filtro==='todos'||t.contactoId==filtro));
+    lista.forEach(t=>{
+      const badge=document.createElement('div');
+      const cls=claseEstado(t);
+      badge.classList.add('tarea-badge');
+      if(cls) badge.classList.add(cls);
+      const contacto=state.contactos.find(c=>c.id===t.contactoId);
+      badge.textContent=t.desc+(contacto?` (${contacto.nombre})`:'');
+      cel.appendChild(badge);
+    });
   }
   function mostrarDia(fecha){
     fechaDiaActual=fecha;
