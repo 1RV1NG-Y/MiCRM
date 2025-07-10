@@ -27,7 +27,16 @@
   byId('salir').onclick=()=>{byId('app').style.display='none';byId('login').style.display='flex';};
   /* ========= NAVEGACIÓN ========= */
   document.querySelectorAll('.link-nav').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();seleccionarVista(a.dataset.vista);}));
-  function seleccionarVista(v){state.vista=v;document.querySelectorAll('.link-nav').forEach(l=>l.classList.toggle('activo',l.dataset.vista===v));document.querySelectorAll('.seccion').forEach(s=>s.classList.toggle('activa',s.id===v));if(v==='dashboard')renderDashboard();if(v==='contactos')renderContactos();if(v==='calendario')renderCalendario();if(v==='detalle')renderDetalle();}
+function seleccionarVista(v){
+  state.vista=v;
+  document.querySelectorAll('.link-nav').forEach(l=>l.classList.toggle('activo',l.dataset.vista===v));
+  document.querySelectorAll('.seccion').forEach(s=>s.classList.toggle('activa',s.id===v));
+  if(v==='dashboard')renderDashboard();
+  if(v==='contactos')renderContactos();
+  if(v==='calendario')renderCalendario();
+  if(v==='detalle')renderDetalle();
+  if(v==='tareas')renderTareasGlobal();
+}
   /* ========= DASHBOARD ========= */
   function renderDashboard(){byId('metrica-meta').textContent='$'+state.meta.toLocaleString();const ventas=state.contactos.filter(c=>c.tipo==='cliente').length;byId('metrica-ventas').textContent=ventas;const oportunidades=state.tareas.filter(t=>t.estado==='pendiente').length;byId('metrica-oportunidades').textContent=oportunidades;const prospects=state.contactos.filter(c=>c.tipo==='prospecto').length;byId('metrica-prospectos').textContent=prospects;/* pendientes */const ulP=byId('lista-pendientes');ulP.innerHTML='';state.tareas.filter(t=>t.estado==='pendiente').slice(0,8).forEach(t=>{const li=document.createElement('li');li.textContent=t.desc+' ('+formatoFecha(t.fecha)+')';ulP.appendChild(li);});/* prospectos nuevos */const ulN=byId('lista-prospectos');ulN.innerHTML='';state.contactos.filter(c=>c.tipo==='prospecto'&&state.tareas.every(t=>t.contactoId!==c.id)).slice(0,8).forEach(c=>{const li=document.createElement('li');li.textContent=c.nombre;ulN.appendChild(li);});}
   function renderDashboard(){
@@ -98,16 +107,58 @@ byId("form-cierre").addEventListener("submit",async e=>{
   renderCalendario();
   if(fechaDiaActual) mostrarDia(fechaDiaActual);
 });
-function renderHistorialTareas(){
-    const tbody=byId('tabla-historial-tareas');
-    if(!tbody) return;
-    tbody.innerHTML='';
-    const tareasFinalizadas=state.tareas.filter(t=>t.contactoId===state.contactoActual && t.estado==='finalizada').sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
-    tareasFinalizadas.forEach(t=>{
+  function renderHistorialTareas(){
+      const tbody=byId('tabla-historial-tareas');
+      if(!tbody) return;
+      tbody.innerHTML='';
+      const tareasFinalizadas=state.tareas.filter(t=>t.contactoId===state.contactoActual && t.estado==='finalizada').sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+      tareasFinalizadas.forEach(t=>{
+        const tr=document.createElement('tr');
+        const archivos=(t.archivos||[]).map(a=>`<a class='descarga-btn' href="${a.data}" download="${a.name}">Descargar</a>`).join(' ');
+        tr.innerHTML=`<td>${t.desc}</td><td>${t.lugar||''}</td><td>${formatoFecha(t.fecha)} ${t.hora||''}</td><td>${t.duracion||''}</td><td>${t.comentario||''}</td><td>${archivos}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+  function renderTareasGlobal(){
+    const sel=byId('filtro-tareas');
+    if(!sel) return;
+    sel.innerHTML='';
+    const opt=document.createElement('option');
+    opt.value='todos';
+    opt.textContent='Todos';
+    sel.appendChild(opt);
+    state.contactos.forEach(c=>{
+      const o=document.createElement('option');
+      o.value=c.id;
+      o.textContent=c.nombre;
+      sel.appendChild(o);
+    });
+    sel.onchange=actualizarTareasGlobal;
+    actualizarTareasGlobal();
+  }
+
+  function actualizarTareasGlobal(){
+    const sel=byId('filtro-tareas');
+    const id=sel?sel.value:'todos';
+    const pendientes=byId('tabla-tareas-global');
+    const historial=byId('tabla-historial-global');
+    if(!pendientes||!historial) return;
+    pendientes.innerHTML='';
+    historial.innerHTML='';
+    const lista=id==='todos'?state.tareas:state.tareas.filter(t=>t.contactoId==id);
+    lista.filter(t=>t.estado==='pendiente').forEach(t=>{
+      const contacto=state.contactos.find(c=>c.id===t.contactoId)||{};
       const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${t.desc}</td><td>${contacto.nombre||''}</td><td>${t.lugar||''}</td><td>${formatoFecha(t.fecha)} ${t.hora||''}</td><td>${t.notas||''}</td>`;
+      pendientes.appendChild(tr);
+    });
+    lista.filter(t=>t.estado==='finalizada').sort((a,b)=>new Date(b.fecha)-new Date(a.fecha)).forEach(t=>{
+      const contacto=state.contactos.find(c=>c.id===t.contactoId)||{};
       const archivos=(t.archivos||[]).map(a=>`<a class='descarga-btn' href="${a.data}" download="${a.name}">Descargar</a>`).join(' ');
-      tr.innerHTML=`<td>${t.desc}</td><td>${t.lugar||''}</td><td>${formatoFecha(t.fecha)} ${t.hora||''}</td><td>${t.duracion||''}</td><td>${t.comentario||''}</td><td>${archivos}</td>`;
-      tbody.appendChild(tr);
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${t.desc}</td><td>${contacto.nombre||''}</td><td>${t.lugar||''}</td><td>${formatoFecha(t.fecha)} ${t.hora||''}</td><td>${t.duracion||''}</td><td>${t.comentario||''}</td><td>${archivos}</td>`;
+      historial.appendChild(tr);
     });
   }
 
@@ -180,6 +231,12 @@ function renderHistorialTareas(){
   document.querySelectorAll('[data-cerrar]').forEach(el=>el.onclick=()=>cerrarModal(el.dataset.cerrar));
   document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)cerrarModal(m.id);}));
   /* ========= RENDER INICIAL ========= */
-  function render(){renderDashboard();renderContactos();renderCalendario(); renderDetalle(); /* Initial render for detail view */}
+  function render(){
+    renderDashboard();
+    renderContactos();
+    renderCalendario();
+    renderDetalle();
+    renderTareasGlobal(); /* Initial render for tasks view */
+  }
   seleccionarVista('dashboard');
 })();
