@@ -110,16 +110,25 @@ function renderHistorialTareas(){
   byId('mes-prev').onclick=()=>{state.fechaCalendario.setMonth(state.fechaCalendario.getMonth()-1);renderCalendario();};
   byId('mes-next').onclick=()=>{state.fechaCalendario.setMonth(state.fechaCalendario.getMonth()+1);renderCalendario();};
   function renderCalendario(){const grid=byId('calendario-grid');grid.innerHTML='';const f=new Date(state.fechaCalendario.getFullYear(),state.fechaCalendario.getMonth(),1);const year=f.getFullYear(),mes=f.getMonth();byId('titulo-mes').textContent=f.toLocaleString('es-ES',{month:'long',year:'numeric'});const primerDia=f.getDay();const diasMes=new Date(year,mes+1,0).getDate();for(let i=0;i<primerDia;i++){grid.appendChild(document.createElement('div'));}
-    for(let d=1;d<=diasMes;d++){const cel=document.createElement('div');cel.className='dia';cel.innerHTML=`<span class='numero'>${d}</span>`;const fechaStr=`${year}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const lista=state.tareas.filter(t=>t.fecha===fechaStr);lista.forEach(t=>{const badge=document.createElement('div');badge.className='tarea-badge';const contacto=state.contactos.find(c=>c.id===t.contactoId);badge.textContent=t.desc+(contacto?` (${contacto.nombre})`:"");cel.appendChild(badge);});cel.onclick=()=>mostrarDia(fechaStr);grid.appendChild(cel);} }
+    const hoy=new Date().toISOString().slice(0,10);
+    for(let d=1;d<=diasMes;d++){const cel=document.createElement('div');cel.className='dia';cel.innerHTML=`<span class='numero'>${d}</span>`;const fechaStr=`${year}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const lista=state.tareas.filter(t=>t.fecha===fechaStr);lista.forEach(t=>{const badge=document.createElement('div');badge.className='tarea-badge';const contacto=state.contactos.find(c=>c.id===t.contactoId);badge.textContent=t.desc+(contacto?` (${contacto.nombre})`:"");if(t.estado==='finalizada'){badge.classList.add('tarea-cerrada');}else if(t.fecha<hoy){badge.classList.add('tarea-pasada');}else if(t.fecha===hoy){badge.classList.add('tarea-hoy');}cel.appendChild(badge);});cel.onclick=()=>mostrarDia(fechaStr);grid.appendChild(cel);} }
   function mostrarDia(fecha){
     fechaDiaActual=fecha;
     byId('titulo-dia').textContent='Tareas del '+formatoFecha(fecha);
     const ul=byId('lista-dia');
     ul.innerHTML='';
+    const hoy=new Date().toISOString().slice(0,10);
     state.tareas.filter(t=>t.fecha===fecha).forEach(t=>{
       const li=document.createElement('li');
       const contacto=state.contactos.find(c=>c.id===t.contactoId)||{};
       li.innerHTML=`<span>${t.desc} - ${contacto.nombre||''} ${t.hora||''}</span>`;
+      if(t.estado==='finalizada'){
+        li.classList.add('tarea-cerrada');
+      }else if(t.fecha<hoy){
+        li.classList.add('tarea-pasada');
+      }else if(t.fecha===hoy){
+        li.classList.add('tarea-hoy');
+      }
       if(t.estado!=='finalizada'){
         const btn=document.createElement('button');
         btn.textContent='Cerrar';

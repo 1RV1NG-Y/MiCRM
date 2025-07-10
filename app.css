@@ -49,7 +49,11 @@
     .dia-enc{font-weight:700;color:var(--gris)}
     .dia{background:var(--blanco);min-height:90px;position:relative;border:1px solid #eee}
     .numero{position:absolute;top:4px;right:6px;font-size:12px}
-    .tarea-badge{background:var(--azul);color:#fff;font-size:11px;padding:1px 4px;border-radius:3px;display:inline-block;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tarea-badge{background:var(--azul);color:#fff;font-size:11px;padding:1px 4px;border-radius:3px;display:inline-block;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Colores para tareas según estado */
+.tarea-pasada{background:#dc3545;color:#fff}
+.tarea-hoy{background:#ffc107;color:#000}
+.tarea-cerrada{background:#28a745;color:#fff}
     .dia:hover{background:#e9efff;cursor:pointer}
     /* modal */
     .modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.6);justify-content:center;align-items:center}
@@ -140,5 +144,8 @@
 /* Lista de tareas del día en el calendario */
 #lista-dia{list-style:none;padding:0;margin:0;}
 #lista-dia li{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #eee;}
+#lista-dia li.tarea-pasada{background:#f8d7da;border-left:4px solid #dc3545;}
+#lista-dia li.tarea-hoy{background:#fff3cd;border-left:4px solid #ffc107;}
+#lista-dia li.tarea-cerrada{background:#d4edda;border-left:4px solid #28a745;}
 #lista-dia li:last-child{border-bottom:none;}
 
