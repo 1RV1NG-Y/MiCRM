@@ -23,6 +23,20 @@
     return '';
   }
   const guardar=()=>{LS('crm_contactos',state.contactos);LS('crm_tareas',state.tareas);};
+  function enableSelectSearch(sel, cb){
+    let term='';
+    let timer;
+    sel.addEventListener('keydown',e=>{
+      if(e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
+        term+=e.key.toLowerCase();
+        clearTimeout(timer);
+        timer=setTimeout(()=>term='',500);
+        const opt=[...sel.options].find(o=>o.textContent.toLowerCase().startsWith(term));
+        if(opt){sel.value=opt.value;if(cb)cb();}
+        e.preventDefault();
+      }
+    });
+  }
   /* ========= LOGIN ========= */
   byId('form-login').addEventListener('submit',e=>{e.preventDefault();const u=byId('usuario').value,p=byId('clave').value;if(u==='admin'&&p==='password'){byId('login').style.display='none';byId('app').style.display='grid';render();}else{byId('login-error').textContent='Credenciales incorrectas';setTimeout(()=>byId('login-error').textContent='',3000);}});
   byId('salir').onclick=()=>{byId('app').style.display='none';byId('login').style.display='flex';};
@@ -85,6 +99,7 @@ function seleccionarVista(v){
       o.textContent=c.nombre;
       sel.appendChild(o);
     });
+    enableSelectSearch(sel);
     if(contactoId) sel.value=contactoId;
     if(fecha) byId('t-fecha').value=fecha;
     abrirModal('modal-tarea');
@@ -152,6 +167,7 @@ byId("form-cierre").addEventListener("submit",async e=>{
       sel.appendChild(o);
     });
     sel.onchange=actualizarTareasGlobal;
+    enableSelectSearch(sel, actualizarTareasGlobal);
     actualizarTareasGlobal();
   }
 
