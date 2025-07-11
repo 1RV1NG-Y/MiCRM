@@ -72,8 +72,24 @@ function seleccionarVista(v){
   byId('tabla-contactos').addEventListener('click',e=>{const tr=e.target.closest('tr');if(!tr)return;const id=parseInt(tr.dataset.id);if(e.target.dataset.del){if(confirm('¿Eliminar contacto?')){state.contactos=state.contactos.filter(c=>c.id!==id);state.tareas=state.tareas.filter(t=>t.contactoId!==id);guardar();renderContactos();}}else{state.contactoActual=id;seleccionarVista('detalle');}});
   /* ========= DETALLE CONTACTO Y TAREAS ========= */
   byId('volver').onclick=()=>seleccionarVista('contactos');
-  byId('agregar-tarea').onclick=()=>{byId('form-tarea').reset();byId('t-id').value='';abrirModal('modal-tarea');};
-  byId('form-tarea').addEventListener('submit',e=>{e.preventDefault();const id=byId('t-id').value;const obj={desc:byId('t-desc').value,lugar:byId('t-lugar').value,fecha:byId('t-fecha').value,hora:byId('t-hora').value,notas:byId('t-notas').value,contactoId:state.contactoActual,estado:'pendiente'};if(id){const idx=state.tareas.findIndex(t=>t.id==id);state.tareas[idx]={...state.tareas[idx],...obj};}else{obj.id=Date.now();state.tareas.push(obj);}guardar();cerrarModal('modal-tarea');renderDetalle();});byId('guardar-nota').addEventListener('click',()=>{const nota=byId('nota-seguimiento').value;if(!nota)return;const contacto=state.contactos.find(c=>c.id===state.contactoActual);if(!contacto)return;if(!contacto.seguimiento)contacto.seguimiento=[];contacto.seguimiento.push({fecha:new Date().toISOString(),nota:nota});guardar();renderDetalle();byId('nota-seguimiento').value='';});function renderDetalle(){const c=state.contactos.find(c=>c.id===state.contactoActual);if(!c)return;byId('nombre-detalle').textContent='Seguimiento: '+c.nombre;byId('info-contacto').innerHTML=`<p><strong>Tipo:</strong> ${c.tipo}</p><p><strong>Empresa:</strong> ${c.comercial||'—'}</p><p><strong>Razón Social:</strong> ${c.razon||'—'}</p><p><strong>Email:</strong> ${c.email||'—'}</p><p><strong>Teléfono:</strong> ${c.telefono||'—'}</p><p><strong>Ubicación:</strong> ${c.ubicacion||'—'}</p><p><strong>Quién recomienda:</strong> ${c.refiere||'—'}</p><p><strong>Vendedor / Agente:</strong> ${c.agente||'—'}</p><p><strong>Tipo de Empresa:</strong> ${c.empresa||'—'}</p>`;/* tareas pendientes */const tbodyPendientes=byId('tabla-tareas-pendientes');tbodyPendientes.innerHTML='';state.tareas.filter(t=>t.contactoId===c.id&&t.estado==='pendiente').forEach(t=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${t.desc}</td><td>${t.lugar||''}</td><td>${formatoFecha(t.fecha)} ${t.hora}</td><td>${t.notas||''}</td><td><button class='accion' data-fin='${t.id}'>✓</button></td>`;tbodyPendientes.appendChild(tr);});/* historial */const tbH=byId('tabla-historial');tbH.innerHTML='';const historialOrdenado=(c.seguimiento||[]).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));historialOrdenado.forEach(fu=>{const tr=document.createElement('tr');tr.innerHTML=`<td>Nota de seguimiento</td><td>${new Date(fu.fecha).toLocaleString()}</td><td>N/A</td><td>${fu.nota||''}</td>`;tbH.appendChild(tr);});renderHistorialTareas();}
+  byId('agregar-tarea').onclick=()=>abrirModalTarea(state.contactoActual);
+
+  function abrirModalTarea(contactoId, fecha){
+    byId('form-tarea').reset();
+    byId('t-id').value='';
+    const sel=byId('t-contacto');
+    sel.innerHTML='';
+    state.contactos.forEach(c=>{
+      const o=document.createElement('option');
+      o.value=c.id;
+      o.textContent=c.nombre;
+      sel.appendChild(o);
+    });
+    if(contactoId) sel.value=contactoId;
+    if(fecha) byId('t-fecha').value=fecha;
+    abrirModal('modal-tarea');
+  }
+  byId('form-tarea').addEventListener('submit',e=>{e.preventDefault();const id=byId('t-id').value;const obj={desc:byId('t-desc').value,lugar:byId('t-lugar').value,fecha:byId('t-fecha').value,hora:byId('t-hora').value,notas:byId('t-notas').value,contactoId:parseInt(byId('t-contacto').value)||state.contactoActual,estado:'pendiente'};if(id){const idx=state.tareas.findIndex(t=>t.id==id);state.tareas[idx]={...state.tareas[idx],...obj};}else{obj.id=Date.now();state.tareas.push(obj);}guardar();cerrarModal('modal-tarea');renderDetalle();renderCalendario();if(fechaDiaActual)mostrarDia(fechaDiaActual);});byId('guardar-nota').addEventListener('click',()=>{const nota=byId('nota-seguimiento').value;if(!nota)return;const contacto=state.contactos.find(c=>c.id===state.contactoActual);if(!contacto)return;if(!contacto.seguimiento)contacto.seguimiento=[];contacto.seguimiento.push({fecha:new Date().toISOString(),nota:nota});guardar();renderDetalle();byId('nota-seguimiento').value='';});function renderDetalle(){const c=state.contactos.find(c=>c.id===state.contactoActual);if(!c)return;byId('nombre-detalle').textContent='Seguimiento: '+c.nombre;byId('info-contacto').innerHTML=`<p><strong>Tipo:</strong> ${c.tipo}</p><p><strong>Empresa:</strong> ${c.comercial||'—'}</p><p><strong>Razón Social:</strong> ${c.razon||'—'}</p><p><strong>Email:</strong> ${c.email||'—'}</p><p><strong>Teléfono:</strong> ${c.telefono||'—'}</p><p><strong>Ubicación:</strong> ${c.ubicacion||'—'}</p><p><strong>Quién recomienda:</strong> ${c.refiere||'—'}</p><p><strong>Vendedor / Agente:</strong> ${c.agente||'—'}</p><p><strong>Tipo de Empresa:</strong> ${c.empresa||'—'}</p>`;/* tareas pendientes */const tbodyPendientes=byId('tabla-tareas-pendientes');tbodyPendientes.innerHTML='';state.tareas.filter(t=>t.contactoId==c.id&&t.estado==='pendiente').forEach(t=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${t.desc}</td><td>${t.lugar||''}</td><td>${formatoFecha(t.fecha)} ${t.hora}</td><td>${t.notas||''}</td><td><button class='accion' data-fin='${t.id}'>✓</button></td>`;tbodyPendientes.appendChild(tr);});/* historial */const tbH=byId('tabla-historial');tbH.innerHTML='';const historialOrdenado=(c.seguimiento||[]).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));historialOrdenado.forEach(fu=>{const tr=document.createElement('tr');tr.innerHTML=`<td>Nota de seguimiento</td><td>${new Date(fu.fecha).toLocaleString()}</td><td>N/A</td><td>${fu.nota||''}</td>`;tbH.appendChild(tr);});renderHistorialTareas();}
 let cierreId=null;
 let fechaDiaActual=null;
 byId("tabla-tareas-pendientes").addEventListener("click",e=>{
@@ -112,7 +128,7 @@ byId("form-cierre").addEventListener("submit",async e=>{
       const tbody=byId('tabla-historial-tareas');
       if(!tbody) return;
       tbody.innerHTML='';
-      const tareasFinalizadas=state.tareas.filter(t=>t.contactoId===state.contactoActual && t.estado==='finalizada').sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+      const tareasFinalizadas=state.tareas.filter(t=>t.contactoId==state.contactoActual && t.estado==='finalizada').sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
       tareasFinalizadas.forEach(t=>{
         const tr=document.createElement('tr');
         const archivos=(t.archivos||[]).map(a=>`<a class='descarga-btn' href="${a.data}" download="${a.name}">Descargar</a>`).join(' ');
@@ -331,6 +347,7 @@ byId("form-cierre").addEventListener("submit",async e=>{
       abrirModal('modal-cierre');
     }
   });
+  byId('dia-nueva-tarea').onclick=()=>abrirModalTarea(null, fechaDiaActual);
   /* ========= MODALES GENÉRICOS ========= */
   document.querySelectorAll('[data-cerrar]').forEach(el=>el.onclick=()=>cerrarModal(el.dataset.cerrar));
   document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)cerrarModal(m.id);}));
