@@ -30,6 +30,7 @@
       <ul>
         <li><a href="#" class="link-nav activo" data-vista="dashboard">Dashboard</a></li>
         <li><a href="#" class="link-nav" data-vista="contactos">Contactos</a></li>
+        <li><a href="#" class="link-nav" data-vista="tareas">Reporte Seguimiento</a></li>
         <li><a href="#" class="link-nav" data-vista="calendario">Calendario</a></li>
       </ul>
     </nav>
@@ -90,14 +91,53 @@
  <div class="seguimiento-section" style="margin-top: 24px;">
  <h3>Historial de tareas</h3>
  <div class="tabla-contenedor">
- <table><thead><tr><th>Tarea</th><th>Lugar</th><th>Fecha/Hora</th><th>Duración</th><th>Comentario</th></tr></thead><tbody id="tabla-historial-tareas"></tbody></table>
+ <table><thead><tr><th>Tarea</th><th>Lugar</th><th>Fecha/Hora</th><th>Duración</th><th>Comentario</th><th>Archivos</th></tr></thead><tbody id="tabla-historial-tareas"></tbody></table>
  </div>
- </div>
+</div>
 
+      </section>
+      <!-- TAREAS -->
+      <section id="tareas" class="seccion">
+        <div class="encabezado">
+          <h2>Todas las tareas</h2>
+          <select id="filtro-tareas"></select>
+        </div>
+        <div class="tarjeta" style="margin-bottom:24px">
+          <h3>Tareas pendientes</h3>
+          <div class="tabla-contenedor">
+            <table>
+              <thead>
+                <tr><th>Tarea</th><th>Contacto</th><th>Lugar</th><th>Fecha/Hora</th><th>Observaciones</th></tr>
+              </thead>
+              <tbody id="tabla-tareas-global"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="tarjeta">
+          <h3>Historial de tareas</h3>
+          <div class="tabla-contenedor">
+            <table>
+              <thead>
+                <tr><th>Tarea</th><th>Contacto</th><th>Lugar</th><th>Fecha/Hora</th><th>Duración</th><th>Comentario</th><th>Archivos</th></tr>
+              </thead>
+              <tbody id="tabla-historial-global"></tbody>
+            </table>
+          </div>
+        </div>
       </section>
       <!-- CALENDARIO -->
       <section id="calendario" class="seccion">
-        <div class="encabezado"><h2>Calendario</h2></div>
+        <div class="encabezado">
+          <h2>Calendario</h2>
+          <div style="display:flex;gap:10px;align-items:center">
+            <select id="vista-calendario">
+              <option value="mes">Mes</option>
+              <option value="semana">Semana</option>
+              <option value="dia">Día</option>
+            </select>
+            <select id="filtro-calendario"></select>
+          </div>
+        </div>
         <div class="tarjeta" style="padding:18px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
             <button id="mes-prev" class="volver" style="padding:5px 12px">&lt;</button>
@@ -106,6 +146,7 @@
           </div>
           <div id="calendario-encabezado" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:5px"></div>
           <div id="calendario-grid"></div>
+          <div id="calendario-dia" style="display:none"></div>
         </div>
       </section>
     </main>
@@ -127,8 +168,21 @@
       <div class="campo"><label>Razón social</label><input id="c-razon"></div>
       <div class="campo"><label>Ubicación</label><input id="c-ubicacion"></div>
       <div class="campo"><label>Quién recomienda</label><input id="c-refiere"></div>
-      <div class="campo"><label>Vendedor/Agente</label><input id="c-agente"></div>
-      <div class="campo"><label>Tipo de empresa</label><input id="c-empresa"></div>
+      <div class="campo"><label>Vendedor/Agente</label>
+        <select id="c-agente">
+          <option value="Hector">Hector</option>
+          <option value="Raul">Raul</option>
+          <option value="Servicio a Cliente">Servicio a Cliente</option>
+        </select>
+      </div>
+      <div class="campo"><label>Tipo de empresa</label>
+        <select id="c-empresa">
+          <option value="Transporte">Transporte</option>
+          <option value="Logistica">Logistica</option>
+          <option value="Servicios">Servicios</option>
+          <option value="Manufactura">Manufactura</option>
+        </select>
+      </div>
       <button class="btn" type="submit">Guardar</button>
     </form>
   </div></div>
@@ -140,11 +194,27 @@
     </div>
     <form id="form-tarea">
       <input type="hidden" id="t-id">
+      <div class="campo"><label>Contacto</label><select id="t-contacto"></select></div>
       <div class="campo"><label>Descripción de la tarea</label><input id="t-desc" required></div>
       <div class="campo"><label>Lugar/Ubicación</label><input id="t-lugar"></div>
       <div class="campo" style="display:flex;gap:8px"><div style="flex:1"><label>Fecha</label><input id="t-fecha" type="date" required></div><div style="flex:1"><label>Hora</label><input id="t-hora" type="time" required></div></div>
       <div class="campo"><label>Observaciones</label><textarea id="t-notas"></textarea></div>
-      <button class="btn" type="submit">Guardar tarea</button>
+    <button class="btn" type="submit">Guardar tarea</button>
+    </form>
+  </div></div>
+  <!-- MODAL CIERRE TAREA -->
+  <div id="modal-cierre" class="modal"><div class="modal-contenido">
+    <span class="cerrar" data-cerrar="modal-cierre">&times;</span>
+    <div class="modal-header">
+      <h3>Cerrar tarea</h3>
+    </div>
+    <form id="form-cierre">
+      <input type="hidden" id="f-id">
+      <div class="campo"><label>Duración</label><input id="f-duracion" required></div>
+      <div class="campo"><label>Comentario</label><textarea id="f-comentario"></textarea></div>
+      <div class="campo"><label>Archivos</label><input id="f-archivos" type="file" multiple></div>
+      <ul id="lista-archivos"></ul>
+      <button class="btn" type="submit">Guardar</button>
     </form>
   </div></div>
   <!-- MODAL DIA CALENDARIO -->
@@ -152,6 +222,7 @@
     <span class="cerrar" data-cerrar="modal-dia">&times;</span>
     <div class="modal-header">
       <h3 id="titulo-dia"></h3>
+      <button id="dia-nueva-tarea" class="add">Añadir tarea</button>
     </div>
     <ul id="lista-dia"></ul>
   </div></div>
