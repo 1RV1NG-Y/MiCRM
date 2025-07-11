@@ -322,6 +322,7 @@ byId("form-cierre").addEventListener("submit",async e=>{
     const filtro=filtroSel?filtroSel.value:'todos';
     state.tareas.filter(t=>t.fecha===fecha && (filtro==='todos'||t.contactoId==filtro)).forEach(t=>{
       const li=document.createElement('li');
+      li.dataset.contacto = t.contactoId;
       const contacto=state.contactos.find(c=>c.id===t.contactoId)||{};
       li.innerHTML=`<span>${t.desc} - ${contacto.nombre||''} ${t.hora||''}</span>`;
       const cls=claseEstado(t);
@@ -345,6 +346,13 @@ byId("form-cierre").addEventListener("submit",async e=>{
       byId('lista-archivos').innerHTML='';
       cerrarModal('modal-dia');
       abrirModal('modal-cierre');
+    } else {
+      const li=e.target.closest('li');
+      if(li && li.dataset.contacto){
+        state.contactoActual=parseInt(li.dataset.contacto);
+        cerrarModal('modal-dia');
+        seleccionarVista('detalle');
+      }
     }
   });
   byId('dia-nueva-tarea').onclick=()=>abrirModalTarea(null, fechaDiaActual);
