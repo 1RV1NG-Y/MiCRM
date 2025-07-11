@@ -26,7 +26,7 @@
   function enableSelectSearch(sel, cb){
     let term='';
     let timer;
-    sel.addEventListener('keydown',e=>{
+    const handler=e=>{
       if(e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
         term+=e.key.toLowerCase();
         clearTimeout(timer);
@@ -35,7 +35,9 @@
         if(opt){sel.value=opt.value;if(cb)cb();}
         e.preventDefault();
       }
-    });
+    };
+    sel.addEventListener('focus',()=>document.addEventListener('keydown',handler));
+    sel.addEventListener('blur',()=>document.removeEventListener('keydown',handler));
   }
   /* ========= LOGIN ========= */
   byId('form-login').addEventListener('submit',e=>{e.preventDefault();const u=byId('usuario').value,p=byId('clave').value;if(u==='admin'&&p==='password'){byId('login').style.display='none';byId('app').style.display='grid';render();}else{byId('login-error').textContent='Credenciales incorrectas';setTimeout(()=>byId('login-error').textContent='',3000);}});
